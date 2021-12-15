@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Read Faster</title>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="/resources/demos/style.css">
+  <style>
+    h1 {
+        color: white; text-align: center;
+    }
+
+    body {
+        background: black;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+    }
+
+    #background {
+        background: #F5F5DC; 
+        margin: auto; 
+        height: auto; 
+        min-height: 800px; 
+        width:100%; 
+        position: relative;
+    }
+
+    #boxAroundInput {
+        background: white;
+        position: relative;
+        top: 160px;
+        max-width: 750px;
+        height: auto;
+        min-height: 310px;
+        margin: auto;
+        border: solid 2px black;
+        border-radius: 5px;
+        box-shadow: 0px 0px 3px 3px #ccc;
+        padding: 20px;
+        font-size: 20px;
+    }
+
+    #speedOne {
+        position: absolute;
+        top: 38%; 
+        left: 21%;
+        font-size: 20px;
+        background-color: #4CAF50;
+        cursor: pointer;
+        color: white; 
+        border-radius: 6px;
+    }
+    #speedOne:hover {
+        background-color: yellow; /* Green */
+        color: black;
+    }
+
+    #speedTwo {
+        position: absolute;
+        top: 38%; 
+        left: 26%;
+        font-size: 20px;
+        background-color: #4CAF50;
+        cursor: pointer;
+        color: white; 
+        border-radius: 6px;
+    }
+    #speedTwo:hover {
+        background-color: orange; /* Green */
+    }
+
+    #speedThree {
+        position: absolute;
+        top: 38%; 
+        left: 31%;
+        font-size: 20px;
+        background-color: #4CAF50;
+        cursor: pointer;
+        color: white; 
+        border-radius: 6px;
+    }
+    #speedThree:hover {
+        background-color: red; /* Green */
+    }
+
+    #startButton {
+        position: absolute;
+        top: 38%;
+        left: 75%;
+        font-size: 20px;
+        background-color: gray;
+        cursor: pointer;
+        color: white;
+        border-radius: 6px;
+    }
+
+    #pauseButton {
+        position: absolute;
+        top: 38%;
+        left: 70%;
+        font-size: 20px;
+        background-color: gray;
+        cursor: pointer;
+        color: white;
+        border-radius: 6px;
+    }
+
+    #resetButton {
+        position: absolute;
+        top: 38%;
+        left: 65%;
+        font-size: 20px;
+        background-color: gray;
+        cursor: pointer;
+        color: white;
+        border-radius: 6px;
+    }
+
+    #speedIndicator {
+        position: relative;
+        top: 100px; 
+        left: 18%;
+        font-size: 20px;
+        cursor: pointer; 
+        border-radius: 6px;
+    }
+
+    #textSpitter {
+        position: relative;
+        top: 40px; 
+        height: 150px;
+        max-width: 60%;
+        font-size: 40px;
+        background-color: white; 
+        border-style: dotted;
+        border-radius: 6px;
+        border-color: black;
+        text-align: center;
+        color: black;
+        line-height: 150px;
+        margin: auto;
+    }
+
+    #testButton {
+        position: absolute;
+        top: 10%;
+        left: 75%;
+        background-color: green;
+        cursor: pointer;
+        border-radius: 6px;
+        height: 20px;
+        width: 20px;
+        z-index: 1;
+    }    
+
+  </style>
+</head>
+<body>
+    <h1>Single Word Text Reader</h1>
+    <div id="background">
+        <!-- <div id='testButton'></div> -->
+        <div id ="textSpitter"></div>
+        <div id="speedIndicator"> Speed: 0</div>
+        <button id="speedOne" onclick="speedOne(); indicateSpeed('1');">x1</button>
+        <button id="speedTwo" onclick="speedTwo(); indicateSpeed('2');">x2</button>
+        <button id="speedThree" onclick="speedThree(); indicateSpeed('3');">x3</button>
+        <button id="startButton" onclick="read(); appear(); disableSpeed();">Start</button>
+        <button id="pauseButton" onclick="pause(); enableSpeed();">Pause</button>
+        <button id="resetButton" onclick="reset();">Reset</button>
+        <div id="boxAroundInput" contenteditable="true">Call up, ring once, hang up the phone To let me know you made it home Don't want nothing to be wrong with part-time lover If she's with me i'll blink the lights To let you know tonight's the night For me and you my part-time lover</div>
+    </div>
+</body>
+    <script type="text/javascript">
+        var speed = 4;                   // pause/play,  go back words
+        var words;
+        var numOfWords = 0;
+        var index = 0;
+        var timerGo;
+        var play = false;
+
+        document.onkeydown = function (e) {                 // keypress space bar
+            if (e.keyCode == 32) {
+                if (play == false) {
+                    e.preventDefault();
+                    document.getElementById("startButton").click();
+                }
+                else {
+                    e.preventDefault();
+                    document.getElementById("pauseButton").click();
+                }
+            }
+            else if (e.keyCode == 82) {
+                document.getElementById("resetButton").click();
+            }
+        }
+
+        /**
+         * reads the text and makes each word an element of an array
+         * 
+         **/
+        function read() {                                   
+            var text = $('#boxAroundInput').text();
+            wordArray = text.split(' ');
+            words = wordArray;
+            numOfWords = words.length;
+        }
+
+        /**
+         * Uses setInterval method to call individual with given interval
+         **/
+        function appear() {
+            timerGo = setInterval(individual, 1000/speed); // 1000/speed parameter
+        }
+
+        /**
+         * Changes text on the text display div until the whole array is traversed
+         **/
+        function individual() {
+            if (index < numOfWords) {
+                document.getElementById("textSpitter").innerText = words[index];
+                index += 1;
+                console.log("index: " + index);
+                console.log("num of words: " + numOfWords);
+            }
+            else {
+                clearInterval(timerGo);
+            }
+
+        }
+
+        /**
+         * changes the global variable index to 0 to start displaying elements from the first element ("reset")
+         * 
+         **/
+        function reset() {
+            index = 0;
+            document.getElementById("textSpitter").innerText = words[0];
+        }
+
+        /**
+         * clears the setInterval method 
+         **/
+        function pause() {
+            clearInterval(timerGo);
+        }
+
+        function disableSpeed() {
+            document.getElementById("speedOne").disabled = true;
+            document.getElementById("speedTwo").disabled = true;
+            document.getElementById("speedThree").disabled = true;
+            document.getElementById("startButton").disabled = true;
+            play = true;
+        }
+
+        function enableSpeed() {
+            document.getElementById("speedOne").disabled = false;
+            document.getElementById("speedTwo").disabled = false;
+            document.getElementById("speedThree").disabled = false;
+            document.getElementById("startButton").disabled = false;
+            play = false;
+        }
+
+        function saveText() {
+            alert("This is the speed: " + speed);
+        }
+
+        function speedOne() { 
+            speed = 5;
+        }
+
+        function speedTwo() {
+            speed = 6;
+        }
+
+        function speedThree() {
+            speed = 7;
+        }
+
+        function indicateSpeed(speed) {
+            document.getElementById("speedIndicator").innerHTML = "Speed: " + speed;
+        }
+    </script>
+</html>
